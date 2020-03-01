@@ -1,0 +1,9 @@
+[window]
+fullscreen = false
+vsync = false
+width = 1600
+height = 900
+
+[application]
+name = "Rock and Water"
+logging  = true
