@@ -1,6 +1,6 @@
 use std::{fs::File, io::Read, path::Path};
 
-use crate::Result;
+use crate::{model::Vertex, Result};
 
 pub struct Pipeline {
     pub render_pipeline: wgpu::RenderPipeline,
@@ -57,7 +57,7 @@ impl Pipeline {
             primitive_topology: wgpu::PrimitiveTopology::TriangleList,
             depth_stencil_state: None,
             index_format: wgpu::IndexFormat::Uint16,
-            vertex_buffers: &[],
+            vertex_buffers: &[Vertex::description()],
             sample_count: 1,
             sample_mask: !0,
             alpha_to_coverage_enabled: false,

@@ -9,14 +9,46 @@ use winit::{
 };
 
 use crate::input::InputState;
-use crate::renderer::{Pipeline, Renderer};
+use crate::model::{Mesh, Model, Transform, Vertex};
+use crate::renderer::Renderer;
+
+fn create_triangle(renderer: &Renderer) -> Result<Model> {
+    let vert_path = Path::new("./resources/shaders/shader.vert");
+    let frag_path = Path::new("./resources/shaders/shader.frag");
+    let pipeline = renderer.create_pipeline(vert_path, frag_path)?;
+
+    let transform = Transform::default();
+
+    let vertices = [
+        Vertex {
+            position: [0.0, -0.5, 0.0],
+            color: [1.0, 0.0, 0.0],
+        },
+        Vertex {
+            position: [-0.5, 0.5, 0.0],
+            color: [0.0, 1.0, 0.0],
+        },
+        Vertex {
+            position: [0.5, 0.5, 0.0],
+            color: [0.0, 0.0, 1.0],
+        },
+    ];
+
+    let indices = [0, 1, 2];
+
+    let mesh = Mesh::new(vertices.to_vec(), indices.to_vec());
+
+    let model = Model::new(transform, mesh, pipeline, &renderer);
+
+    Ok(model)
+}
 
 pub struct App {
     window: Window,
     event_loop: EventLoop<()>,
     input_state: InputState,
     renderer: Renderer,
-    pipeline: Pipeline,
+    model: Model,
 }
 
 impl App {
@@ -43,9 +75,7 @@ impl App {
         info!("Window and Event Loop Created");
 
         let renderer = Renderer::new(&window);
-        let vert_path = Path::new("./resources/shaders/shader.vert");
-        let frag_path = Path::new("./resources/shaders/shader.frag");
-        let pipeline = renderer.create_pipeline(vert_path, frag_path)?;
+        let triangle = create_triangle(&renderer)?;
 
         info!(
             "Initialization time: {:#?} sec",
@@ -57,7 +87,7 @@ impl App {
             event_loop,
             input_state,
             renderer,
-            pipeline,
+            model: triangle,
         })
     }
 
@@ -66,7 +96,7 @@ impl App {
         let mut input_state = self.input_state;
         let window = self.window;
         let mut renderer = self.renderer;
-        let pipeline = self.pipeline;
+        let model = self.model;
 
         self.event_loop.run(move |event, _, control_flow| {
             match event {
@@ -78,7 +108,7 @@ impl App {
                     window.request_redraw();
                 }
                 Event::RedrawRequested(_) => {
-                    renderer.render(&pipeline);
+                    renderer.render(&model);
                 }
                 Event::WindowEvent {
                     event: WindowEvent::CloseRequested,

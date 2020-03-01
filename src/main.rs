@@ -8,6 +8,7 @@ type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 mod app;
 mod input;
+mod model;
 mod renderer;
 
 use app::App;

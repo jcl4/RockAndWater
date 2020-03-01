@@ -1,4 +1,4 @@
-use crate::Result;
+use crate::{model::Model, model::Vertex, Result};
 use std::path::Path;
 use winit::{dpi::PhysicalSize, window::Window};
 
@@ -8,7 +8,7 @@ pub use pipeline::Pipeline;
 pub struct Renderer {
     surface: wgpu::Surface,
     adapter: wgpu::Adapter,
-    device: wgpu::Device,
+    pub device: wgpu::Device,
     queue: wgpu::Queue,
     sc_desc: wgpu::SwapChainDescriptor,
     swap_chain: wgpu::SwapChain,
@@ -65,7 +65,7 @@ impl Renderer {
         self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
     }
 
-    pub fn render(&mut self, pipeline: &Pipeline) {
+    pub fn render(&mut self, model: &Model) {
         let frame = self.swap_chain.get_next_texture();
         let mut encoder = self
             .device
@@ -88,8 +88,9 @@ impl Renderer {
                 depth_stencil_attachment: None,
             });
 
-            render_pass.set_pipeline(&pipeline.render_pipeline);
-            render_pass.draw(0..3, 0..1);
+            render_pass.set_pipeline(&model.pipeline.render_pipeline);
+            render_pass.set_vertex_buffers(0, &[(&model.vertex_buffer, 0)]);
+            render_pass.draw(0..model.num_vertices, 0..1);
         }
 
         self.queue.submit(&[encoder.finish()]);
