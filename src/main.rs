@@ -11,6 +11,8 @@ mod input;
 mod model;
 mod renderer;
 
+pub use renderer::Renderer;
+
 use app::App;
 
 #[derive(Debug, Deserialize)]

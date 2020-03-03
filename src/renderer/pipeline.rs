@@ -12,6 +12,7 @@ impl Pipeline {
         frag_file: &Path,
         device: &wgpu::Device,
         format: wgpu::TextureFormat,
+        bind_group_layout: &wgpu::BindGroupLayout,
     ) -> Result<Self> {
         let mut vs_src = String::new();
         File::open(vert_file)?.read_to_string(&mut vs_src)?;
@@ -28,7 +29,7 @@ impl Pipeline {
         let vs_module = device.create_shader_module(&vs_data);
         let fs_module = device.create_shader_module(&fs_data);
         let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-            bind_group_layouts: &[],
+            bind_group_layouts: &[bind_group_layout],
         });
 
         let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {

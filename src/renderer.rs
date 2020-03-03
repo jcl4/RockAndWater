@@ -3,13 +3,15 @@ use std::path::Path;
 use winit::{dpi::PhysicalSize, window::Window};
 
 pub mod pipeline;
+pub mod texture;
 pub use pipeline::Pipeline;
+pub use texture::Texture;
 
 pub struct Renderer {
     surface: wgpu::Surface,
     adapter: wgpu::Adapter,
     pub device: wgpu::Device,
-    queue: wgpu::Queue,
+    pub queue: wgpu::Queue,
     sc_desc: wgpu::SwapChainDescriptor,
     swap_chain: wgpu::SwapChain,
     size: PhysicalSize<u32>,
@@ -53,8 +55,19 @@ impl Renderer {
         }
     }
 
-    pub fn create_pipeline(&self, vert_file: &Path, frag_file: &Path) -> Result<Pipeline> {
-        let pipeline = Pipeline::new(vert_file, frag_file, &self.device, self.sc_desc.format)?;
+    pub fn create_pipeline(
+        &self,
+        vert_file: &Path,
+        frag_file: &Path,
+        bind_group_layout: &wgpu::BindGroupLayout,
+    ) -> Result<Pipeline> {
+        let pipeline = Pipeline::new(
+            vert_file,
+            frag_file,
+            &self.device,
+            self.sc_desc.format,
+            bind_group_layout,
+        )?;
         Ok(pipeline)
     }
 
@@ -89,8 +102,10 @@ impl Renderer {
             });
 
             render_pass.set_pipeline(&model.pipeline.render_pipeline);
+            render_pass.set_bind_group(0, &model.texture.diffuse_bind_group, &[]);
             render_pass.set_vertex_buffers(0, &[(&model.vertex_buffer, 0)]);
-            render_pass.draw(0..model.num_vertices, 0..1);
+            render_pass.set_index_buffer(&model.index_buffer, 0);
+            render_pass.draw_indexed(0..model.num_indices, 0, 0..1);
         }
 
         self.queue.submit(&[encoder.finish()]);

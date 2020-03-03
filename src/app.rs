@@ -10,35 +10,47 @@ use winit::{
 
 use crate::input::InputState;
 use crate::model::{Mesh, Model, Transform, Vertex};
-use crate::renderer::Renderer;
+use crate::renderer::{texture::Texture, Renderer};
 
-fn create_triangle(renderer: &Renderer) -> Result<Model> {
+fn create_model(renderer: &mut Renderer) -> Result<Model> {
     let vert_path = Path::new("./resources/shaders/shader.vert");
     let frag_path = Path::new("./resources/shaders/shader.frag");
-    let pipeline = renderer.create_pipeline(vert_path, frag_path)?;
+    let texture_path = Path::new("./resources/textures/Fabric38_col.jpg");
+    let texture = Texture::new(texture_path, &renderer.device, &mut renderer.queue)?;
+
+    let pipeline =
+        renderer.create_pipeline(vert_path, frag_path, &texture.diffuse_bind_group_layout)?;
 
     let transform = Transform::default();
 
     let vertices = [
         Vertex {
-            position: [0.0, -0.5, 0.0],
-            color: [1.0, 0.0, 0.0],
-        },
+            position: [-0.0868241, -0.49240386, 0.0],
+            tex_coords: [0.4131759, 0.99240386],
+        }, // A
         Vertex {
-            position: [-0.5, 0.5, 0.0],
-            color: [0.0, 1.0, 0.0],
-        },
+            position: [-0.49513406, -0.06958647, 0.0],
+            tex_coords: [0.0048659444, 0.56958646],
+        }, // B
         Vertex {
-            position: [0.5, 0.5, 0.0],
-            color: [0.0, 0.0, 1.0],
-        },
+            position: [-0.21918549, 0.44939706, 0.0],
+            tex_coords: [0.28081453, 0.050602943],
+        }, // C
+        Vertex {
+            position: [0.35966998, 0.3473291, 0.0],
+            tex_coords: [0.85967, 0.15267089],
+        }, // D
+        Vertex {
+            position: [0.44147372, -0.2347359, 0.0],
+            tex_coords: [0.9414737, 0.7347359],
+        }, // E
     ];
 
-    let indices = [0, 1, 2];
+    let indices = [0, 1, 4, 1, 2, 4, 2, 3, 4];
 
     let mesh = Mesh::new(vertices.to_vec(), indices.to_vec());
 
-    let model = Model::new(transform, mesh, pipeline, &renderer);
+    let model = Model::new(transform, mesh, pipeline, texture, &renderer);
 
     Ok(model)
 }
@@ -74,8 +86,8 @@ impl App {
         };
         info!("Window and Event Loop Created");
 
-        let renderer = Renderer::new(&window);
-        let triangle = create_triangle(&renderer)?;
+        let mut renderer = Renderer::new(&window);
+        let model = create_model(&mut renderer)?;
 
         info!(
             "Initialization time: {:#?} sec",
@@ -87,7 +99,7 @@ impl App {
             event_loop,
             input_state,
             renderer,
-            model: triangle,
+            model,
         })
     }
 

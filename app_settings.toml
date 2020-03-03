@@ -6,4 +6,4 @@ height = 900
 
 [application]
 name = "Rock and Water"
-logging  = true
+logging  = false
