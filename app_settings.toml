@@ -3,7 +3,8 @@ fullscreen = false
 vsync = false
 width = 1600
 height = 900
+bg_color = [0.25, 0.3, 0.25, 1.0]
 
 [application]
 name = "Rock and Water"
-logging  = false
+logging  = true
