@@ -68,6 +68,12 @@ pub struct CubeVertex {
     pub color: [f32; 3],
 }
 
+fn cube_vertex(position: [f32; 3], color: [f32; 3]) -> CubeVertex {
+    CubeVertex{
+        position, color
+    }
+}
+
 impl VertexAttribute for CubeVertex {
     fn description<'a>() -> wgpu::VertexBufferDescriptor<'a> {
         wgpu::VertexBufferDescriptor {
@@ -91,22 +97,11 @@ impl VertexAttribute for CubeVertex {
 
 pub fn create_cube_mesh() -> Mesh<CubeVertex> {
     let front_face = vec![
-        CubeVertex {
-            position: [0.5, 0.5, 0.0],
-            color: [1.0, 0.0, 0.0],
-        },
-        CubeVertex {
-            position: [0.5, -0.5, 0.0],
-            color: [0.0, 1.0, 0.0],
-        },
-        CubeVertex {
-            position: [-0.5, -0.5, 0.0],
-            color: [0.0, 0.0, 1.0],
-        },
-        CubeVertex {
-            position: [-0.5, 0.5, 0.0],
-            color: [1.0, 0.0, 1.0],
-        },
+        //front
+        cube_vertex([1.0, 1.0, 0.0], [1.0, 0.0, 0.0]),
+        cube_vertex([1.0, -1.0, 0.0], [0.0, 1.0, 0.0]),
+        cube_vertex([-1.0, -1.0, 0.0], [0.0, 0.0, 1.0]),
+        cube_vertex([-1.0, 1.0, 0.0], [1.0, 0.0, 1.0]),
     ];
 
     let indices = vec![0, 1, 2, 0, 2, 3];

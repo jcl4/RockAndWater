@@ -53,12 +53,6 @@ fn main() -> Result<()> {
                 File::create(file)?,
             ),
         ]);
-        // sl::TermLogger::init(
-        //     sl::LevelFilter::Warn,
-        //     sl::Config::default(),
-        //     sl::TerminalMode::Mixed,
-        // )
-        // .unwrap();
     }
     warn!("Logging working");
     info!("Config: {:#?}", config);
