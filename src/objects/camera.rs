@@ -1,0 +1,3 @@
+stuct Camera {
+	
+}

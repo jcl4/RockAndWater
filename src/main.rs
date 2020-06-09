@@ -1,6 +1,7 @@
-use log::info;
+use log::{info, warn};
+use nalgebra as na;
 use serde::Deserialize;
-use simple_logger;
+use simplelog as sl;
 use std::{error::Error, fs::File, io::prelude::*};
 use toml;
 
@@ -8,12 +9,12 @@ type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 mod app;
 mod input;
-mod model;
+mod objects;
 mod renderer;
 
-pub use renderer::Renderer;
-
+// pub use renderer::Renderer;
 use app::App;
+use renderer::Renderer;
 
 #[derive(Debug, Deserialize)]
 pub struct Config {
@@ -27,6 +28,7 @@ struct WindowConfig {
     vsync: bool,
     width: i32,
     height: i32,
+    bg_color: [f32; 4],
 }
 
 #[derive(Debug, Deserialize)]
@@ -42,9 +44,17 @@ fn main() -> Result<()> {
     let config: Config = toml::from_str(&contents)?;
 
     if config.application.logging {
-        simple_logger::init_with_level(log::Level::Info)?;
+        let file = "./notes/log.txt";
+        let _ = sl::CombinedLogger::init(vec![
+            sl::SimpleLogger::new(sl::LevelFilter::Warn, sl::Config::default()),
+            sl::WriteLogger::new(
+                sl::LevelFilter::max(),
+                sl::Config::default(),
+                File::create(file)?,
+            ),
+        ]);
     }
-
+    warn!("Logging working");
     info!("Config: {:#?}", config);
 
     let app = App::new(config)?;

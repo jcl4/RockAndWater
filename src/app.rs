@@ -1,5 +1,5 @@
 use crate::{Config, Result};
-use log::info;
+use log::{info, warn};
 use std::{path::Path, time::Instant};
 use winit::{
     dpi::PhysicalSize,
@@ -9,58 +9,15 @@ use winit::{
 };
 
 use crate::input::InputState;
-use crate::model::{Mesh, Model, Transform, Vertex};
-use crate::renderer::{texture::Texture, Renderer};
-
-fn create_model(renderer: &mut Renderer) -> Result<Model> {
-    let vert_path = Path::new("./resources/shaders/shader.vert");
-    let frag_path = Path::new("./resources/shaders/shader.frag");
-    let texture_path = Path::new("./resources/textures/Fabric38_col.jpg");
-    let texture = Texture::new(texture_path, &renderer.device, &mut renderer.queue)?;
-
-    let pipeline =
-        renderer.create_pipeline(vert_path, frag_path, &texture.diffuse_bind_group_layout)?;
-
-    let transform = Transform::default();
-
-    let vertices = [
-        Vertex {
-            position: [-0.0868241, -0.49240386, 0.0],
-            tex_coords: [0.4131759, 0.99240386],
-        }, // A
-        Vertex {
-            position: [-0.49513406, -0.06958647, 0.0],
-            tex_coords: [0.0048659444, 0.56958646],
-        }, // B
-        Vertex {
-            position: [-0.21918549, 0.44939706, 0.0],
-            tex_coords: [0.28081453, 0.050602943],
-        }, // C
-        Vertex {
-            position: [0.35966998, 0.3473291, 0.0],
-            tex_coords: [0.85967, 0.15267089],
-        }, // D
-        Vertex {
-            position: [0.44147372, -0.2347359, 0.0],
-            tex_coords: [0.9414737, 0.7347359],
-        }, // E
-    ];
-
-    let indices = [0, 1, 4, 1, 2, 4, 2, 3, 4];
-
-    let mesh = Mesh::new(vertices.to_vec(), indices.to_vec());
-
-    let model = Model::new(transform, mesh, pipeline, texture, &renderer);
-
-    Ok(model)
-}
+use crate::objects::{Cube, Object};
+use crate::renderer::Renderer;
 
 pub struct App {
     window: Window,
     event_loop: EventLoop<()>,
     input_state: InputState,
     renderer: Renderer,
-    model: Model,
+    cube: Cube,
 }
 
 impl App {
@@ -86,10 +43,11 @@ impl App {
         };
         info!("Window and Event Loop Created");
 
-        let mut renderer = Renderer::new(&window);
-        let model = create_model(&mut renderer)?;
+        let mut renderer = Renderer::new(&window, config.window.bg_color);
+        renderer.init_clear_screen();
+        let cube = Cube::new(&renderer)?;
 
-        info!(
+        warn!(
             "Initialization time: {:#?} sec",
             Instant::now().duration_since(init_start).as_secs_f32()
         );
@@ -99,7 +57,8 @@ impl App {
             event_loop,
             input_state,
             renderer,
-            model,
+            // objects,
+            cube,
         })
     }
 
@@ -108,7 +67,8 @@ impl App {
         let mut input_state = self.input_state;
         let window = self.window;
         let mut renderer = self.renderer;
-        let model = self.model;
+        // let objects = self.objects;
+        let cube = self.cube;
 
         self.event_loop.run(move |event, _, control_flow| {
             match event {
@@ -120,7 +80,7 @@ impl App {
                     window.request_redraw();
                 }
                 Event::RedrawRequested(_) => {
-                    renderer.render(&model);
+                    renderer.render(&cube);
                 }
                 Event::WindowEvent {
                     event: WindowEvent::CloseRequested,
