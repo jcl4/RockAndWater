@@ -4,6 +4,7 @@ use serde::Deserialize;
 use simplelog as sl;
 use std::{error::Error, fs::File, io::prelude::*};
 use toml;
+use futures::executor::block_on;
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
@@ -57,7 +58,7 @@ fn main() -> Result<()> {
     warn!("Logging working");
     info!("Config: {:#?}", config);
 
-    let app = App::new(config)?;
+    let app = block_on(App::new(config))?;
     app.run();
 
     Ok(())

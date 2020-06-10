@@ -6,12 +6,14 @@ edition = "2018"
 
 [dependencies]
 log = "0.4"
-winit = "0.21"
-wgpu = "0.4"
+winit = "0.22"
+wgpu = "0.5"
 glsl-to-spirv = "0.1"
-simplelog = "0.7"
+simplelog = "0.8"
 toml = "0.5"
 serde = { version = "1.0", features = ["derive"] }
 num-traits = "0.2"
 image = "0.23"
-nalgebra = "0.20"
+nalgebra = "0.21"
+futures = "0.3"
+bytemuck = "1.2"

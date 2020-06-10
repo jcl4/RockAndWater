@@ -1,3 +1,4 @@
+#![warn(clippy::all)]
 use super::{Mesh, Object, Transform, VertexAttribute};
 use crate::na;
 use crate::{Renderer, Result};
@@ -26,15 +27,15 @@ impl Cube {
         let transform = Transform::from_parts(position.into(), orientation, scale);
         let pipeline = renderer.create_pipeline(vert_path, frag_path, CubeVertex::description())?;
 
-        let vertex_buffer = renderer
-            .device
-            .create_buffer_mapped(mesh.vertices.len(), wgpu::BufferUsage::VERTEX)
-            .fill_from_slice(&mesh.vertices);
+        let vertex_buffer = renderer.device.create_buffer_with_data(
+            bytemuck::cast_slice(&mesh.vertices),
+            wgpu::BufferUsage::VERTEX,
+        );
 
-        let index_buffer = renderer
-            .device
-            .create_buffer_mapped(mesh.indices.len(), wgpu::BufferUsage::INDEX)
-            .fill_from_slice(&mesh.indices);
+        let index_buffer = renderer.device.create_buffer_with_data(
+            bytemuck::cast_slice(&mesh.indices),
+            wgpu::BufferUsage::INDEX,
+        );
 
         let num_indices = mesh.indices.len() as u32;
         println!("Number of Indices: {:?}", num_indices);
@@ -50,16 +51,6 @@ impl Cube {
     }
 }
 
-impl Object for Cube {
-    fn render(&self, render_pass: &mut wgpu::RenderPass) {
-        render_pass.set_pipeline(&self.pipeline);
-        render_pass.set_vertex_buffers(0, &[(&self.vertex_buffer, 0)]);
-        render_pass.set_index_buffer(&self.index_buffer, 0);
-        render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
-    }
-
-    fn update(&mut self) {}
-}
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
@@ -68,10 +59,11 @@ pub struct CubeVertex {
     pub color: [f32; 3],
 }
 
+unsafe impl bytemuck::Pod for CubeVertex {}
+unsafe impl bytemuck::Zeroable for CubeVertex {}
+
 fn cube_vertex(position: [f32; 3], color: [f32; 3]) -> CubeVertex {
-    CubeVertex{
-        position, color
-    }
+    CubeVertex { position, color }
 }
 
 impl VertexAttribute for CubeVertex {

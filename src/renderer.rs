@@ -21,29 +21,29 @@ pub struct Renderer {
 }
 
 impl Renderer {
-    pub fn new(window: &Window, bg_color: [f32; 4]) -> Self {
+    pub async fn new(window: &Window, bg_color: [f32; 4]) -> Self {
         let size = window.inner_size();
 
         let surface = wgpu::Surface::create(window);
         let adapter = wgpu::Adapter::request(&wgpu::RequestAdapterOptions {
             power_preference: wgpu::PowerPreference::HighPerformance,
-            backends: wgpu::BackendBit::VULKAN,
-        })
-        .unwrap();
+            compatible_surface: Some(&surface),
+        }, wgpu::BackendBit::VULKAN)
+        .await.unwrap();
 
         let (device, queue) = adapter.request_device(&wgpu::DeviceDescriptor {
             extensions: wgpu::Extensions {
                 anisotropic_filtering: false,
             },
             limits: Default::default(),
-        });
+        }).await;
 
         let sc_desc = wgpu::SwapChainDescriptor {
             usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT,
             format: wgpu::TextureFormat::Bgra8UnormSrgb,
             width: size.width,
             height: size.height,
-            present_mode: wgpu::PresentMode::NoVsync,
+            present_mode: wgpu::PresentMode::Immediate,
         };
         let swap_chain = device.create_swap_chain(&surface, &sc_desc);
         let bg_color = wgpu::Color {
@@ -88,7 +88,8 @@ impl Renderer {
     }
 
     pub fn init_clear_screen(&mut self) {
-        let frame = self.swap_chain.get_next_texture();
+        // TODO: fix unwrap
+        let frame = self.swap_chain.get_next_texture().unwrap();
 
         let mut encoder = get_command_encoder(&self.device);
         {
@@ -98,15 +99,16 @@ impl Renderer {
     }
 
     pub fn render(&mut self, cube: &Cube) {
-        let frame = self.swap_chain.get_next_texture();
+        // TODO: fix unwrap
+        let frame = self.swap_chain.get_next_texture().unwrap();
         let mut encoder = get_command_encoder(&self.device);
         {
             let mut render_pass = begin_render_pass(&mut encoder, &frame, self.bg_color);
-            cube.render(&mut render_pass);
-            // render_pass.set_pipeline(&cube.pipeline);
-            // render_pass.set_vertex_buffers(0, &[(&cube.vertex_buffer, 0)]);
-            // render_pass.set_index_buffer(&cube.index_buffer, 0);
-            // render_pass.draw_indexed(0..cube.num_indices, 0, 0..1);
+            // cube.render(&mut render_pass);
+            render_pass.set_pipeline(&cube.pipeline);
+            render_pass.set_vertex_buffer(0, &cube.vertex_buffer, 0, 0);
+            render_pass.set_index_buffer(&cube.index_buffer, 0, 0);
+            render_pass.draw_indexed(0..cube.num_indices, 0, 0..1);
         }
         submit_frame(&mut self.queue, encoder);
     }
@@ -149,12 +151,12 @@ impl Renderer {
 }
 
 fn get_command_encoder(device: &wgpu::Device) -> wgpu::CommandEncoder {
-    device.create_command_encoder(&wgpu::CommandEncoderDescriptor { todo: 0 })
+    device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: Some("comand_encoder")})
 }
 
 fn begin_render_pass<'a>(
     encoder: &'a mut wgpu::CommandEncoder,
-    frame: &wgpu::SwapChainOutput,
+    frame: &'a wgpu::SwapChainOutput,
     bg_color: wgpu::Color,
 ) -> wgpu::RenderPass<'a> {
     encoder.begin_render_pass(&wgpu::RenderPassDescriptor {

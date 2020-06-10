@@ -11,6 +11,6 @@ pub use mesh::VertexAttribute;
 type Transform = na::Similarity3<f32>;
 
 pub trait Object {
-    fn render(&self, render_pass: &mut wgpu::RenderPass);
+    fn render<'a>(&'a self, render_pass: &'a mut wgpu::RenderPass);
     fn update(&mut self);
 }

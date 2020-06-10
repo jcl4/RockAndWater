@@ -21,7 +21,7 @@ pub struct App {
 }
 
 impl App {
-    pub fn new(config: Config) -> Result<App> {
+    pub async fn new(config: Config) -> Result<App> {
         let input_state = InputState::new();
 
         let init_start = Instant::now();
@@ -43,7 +43,7 @@ impl App {
         };
         info!("Window and Event Loop Created");
 
-        let mut renderer = Renderer::new(&window, config.window.bg_color);
+        let mut renderer = Renderer::new(&window, config.window.bg_color).await;
         renderer.init_clear_screen();
         let cube = Cube::new(&renderer)?;
 
